@@ -71,7 +71,7 @@ async def change(ctx: lightbulb.context) -> None:
     day = ctx.options.day
 
     if year < 1900:
-        await ctx.respond(f"{mention} only years before 1900! are allowed")
+        await ctx.respond(f"{mention} only years after 1900 are allowed!")
         return
     if month < 1 or month > 12:
         await ctx.respond(f"{mention} only months between 1 and 12 are allowed")
@@ -114,5 +114,34 @@ async def remove(ctx: lightbulb.context) -> None:
 
     await ctx.respond(f"{mention} you don't have a birthday set! use /birthday add to add it!")
 
+def get_formatted_date(year: int, month: int, day:int) -> str:
+    months_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    full_day = str(day)
+    if day == 1 or day == 21 or day == 31:
+        full_day += "st"
+    elif day == 2 or day == 22:
+        full_day += "nd"
+    elif day == 3 or day == 23:
+        full_day += "rd"
+    else:
+        full_day += "th"
+    return f"{full_day} of {months_names[month - 1]} {year}"
+
+@birthday.child
+@lightbulb.command("list", "list all birthdays")
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def list(ctx: lightbulb.context) -> None:
+    guild = ctx.guild_id
+    birthdays_list = []
+
+    for i in birthdays:
+        if i["Guild"] == guild:
+            user = await bot.rest.fetch_user(i["User"])
+            birthdays_list.append(f"{user.username}#{user.discriminator} - {get_formatted_date(i['Year'], i['Month'], i['Day'])}")
+
+    if not birthdays_list:
+        await ctx.respond("There are no birthdays set!")
+        return
+    await ctx.respond("Birthdays:\n" + "\n".join(birthdays_list))
 
 bot.run()

@@ -1,4 +1,3 @@
-import hikari
 import lightbulb
 from dotenv import load_dotenv
 import os
@@ -155,5 +154,11 @@ async def list(ctx: lightbulb.context) -> None:
         return
 
     await ctx.respond("**Birthdays:**\n" + "\n".join(birthdays_list))
+@birthday.child
+@lightbulb.command("help", "Help for the birthday command group")
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def help(ctx: lightbulb.context) -> None:
+    await ctx.respond("`/birthday add` - add your birthday.\n`/birthday change` - change your birthday.\n`/birthday remove` - remove your birthday.\n`/birthday list` - list all birthdays.\n`/birthday help` - get this message.")
+
 
 bot.run()

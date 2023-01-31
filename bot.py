@@ -3,6 +3,7 @@ import lightbulb
 from dotenv import load_dotenv
 import os
 import pickle
+import datetime
 
 load_dotenv()
 
@@ -57,9 +58,9 @@ async def add(ctx: lightbulb.context) -> None:
     await ctx.respond(f"{mention} your Birthday ({year}/{month}/{day}) has been added!")
 
 @birthday.child
-@lightbulb.option("day", "The day you were born", int)
-@lightbulb.option("month", "The month you were born", int)
 @lightbulb.option("year", "The year you were born", int)
+@lightbulb.option("month", "The month you were born", int)
+@lightbulb.option("day", "The day you were born", int)
 @lightbulb.command("change", "change your birthday")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def change(ctx: lightbulb.context) -> None:
@@ -127,6 +128,16 @@ def get_formatted_date(year: int, month: int, day:int) -> str:
         full_day += "th"
     return f"{full_day} of {months_names[month - 1]} {year}"
 
+# convert to unix time, if the birthday is in the past, add a year
+def convert_to_unix(month: int, day: int) -> int:
+    # get current year
+    current_year = datetime.datetime.now().year
+    #if the birthday is in the past, add a year
+    if datetime.datetime.now().month > month or (datetime.datetime.now().month == month and datetime.datetime.now().day > day):
+        current_year += 1
+    # convert to unix time
+    return int(datetime.datetime(current_year, month, day).timestamp())
+
 @birthday.child
 @lightbulb.command("list", "list all birthdays")
 @lightbulb.implements(lightbulb.SlashSubCommand)
@@ -137,11 +148,12 @@ async def list(ctx: lightbulb.context) -> None:
     for i in birthdays:
         if i["Guild"] == guild:
             user = await bot.rest.fetch_user(i["User"])
-            birthdays_list.append(f"{user.username}#{user.discriminator} - {get_formatted_date(i['Year'], i['Month'], i['Day'])}")
+            birthdays_list.append(f"**{user.username}** - {get_formatted_date(i['Year'], i['Month'], i['Day'])} <t:{convert_to_unix(i['Month'], i['Day'])}:R>")
 
     if not birthdays_list:
         await ctx.respond("There are no birthdays set!")
         return
-    await ctx.respond("Birthdays:\n" + "\n".join(birthdays_list))
+
+    await ctx.respond("**Birthdays:**\n" + "\n".join(birthdays_list))
 
 bot.run()

@@ -14,7 +14,16 @@ bot = lightbulb.BotApp(
 birthdays = pickle.load(open("birthdays.pickle", "rb"))
 
 # convert to unix time, if the birthday is in the past, add a year
-def convert_to_unix(month: int, day: int) -> int:
+def next_bd_unix(month: int, day: int) -> int:
+    """gives the unix time of the next time the birthday will happen
+
+    Args:
+        month (int): month of the birthday
+        day (int): day of the birthday
+
+    Returns:
+        int: unix time of the next birthday
+    """
     # get current year
     current_year = datetime.datetime.now().year
     # if the birthday is in the past, add a year
@@ -25,6 +34,16 @@ def convert_to_unix(month: int, day: int) -> int:
 
 
 def get_formatted_date(year: int, month: int, day: int) -> str:
+    """ converts the date to a string
+
+    Args:
+        year (int): year
+        month (int): month
+        day (int): day
+
+    Returns:
+        str: formatted date
+    """
     months_names = ["January", "February", "March", "April", "May", "June",
                     "July", "August", "September", "October", "November", "December"]
     full_day = str(day)
@@ -40,6 +59,16 @@ def get_formatted_date(year: int, month: int, day: int) -> str:
 
 
 def check_if_valid_date(year: int, month: int, day: int) -> bool:
+    """checks if the date is valid (year is between 1900 and the current year, month is between 1 and 12, day is between 1 and 31)
+
+    Args:
+        year (int): year
+        month (int): month
+        day (int): day
+
+    Returns:
+        bool: True if the date is valid, False if not
+    """
     if year > 1900 & year < datetime.datetime.now().year:
         return False
     if month < 1 or month > 12:
@@ -63,6 +92,11 @@ async def birthday(ctx: lightbulb.context) -> None:
 @lightbulb.command("add", "add your birthday to the list")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def add(ctx: lightbulb.context) -> None:
+    """adds a birthday to the list
+
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
     guild = ctx.guild_id
     mention = ctx.author.mention
     user = int(mention[2:-1])
@@ -96,6 +130,11 @@ async def add(ctx: lightbulb.context) -> None:
 @lightbulb.command("change", "change your birthday")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def change(ctx: lightbulb.context) -> None:
+    """changes the birthday of a user
+
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
     guild = ctx.guild_id
     mention = ctx.author.mention
     user = int(mention[2:-1])
@@ -126,6 +165,11 @@ async def change(ctx: lightbulb.context) -> None:
 @lightbulb.command("remove", "remove your birthday")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def remove(ctx: lightbulb.context) -> None:
+    """removes a birthday from the list
+
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
     guild = ctx.guild_id
     mention = ctx.author.mention
     user = int(mention[2:-1])
@@ -147,6 +191,11 @@ async def remove(ctx: lightbulb.context) -> None:
 @lightbulb.command("list", "list all birthdays")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def list(ctx: lightbulb.context) -> None:
+    """lists all birthdays
+
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
     guild = ctx.guild_id
     birthdays_list = []
 
@@ -154,7 +203,7 @@ async def list(ctx: lightbulb.context) -> None:
         if i["Guild"] == guild:
             user = await bot.rest.fetch_user(i["User"])
             birthdays_list.append(
-                f"**{user.username}** - {get_formatted_date(i['Year'], i['Month'], i['Day'])} <t:{convert_to_unix(i['Month'], i['Day'])}:R>")
+                f"**{user.username}** - {get_formatted_date(i['Year'], i['Month'], i['Day'])} <t:{next_bd_unix(i['Month'], i['Day'])}:R>")
 
     if not birthdays_list:
         await ctx.respond("There are no birthdays set!")
@@ -167,6 +216,11 @@ async def list(ctx: lightbulb.context) -> None:
 @lightbulb.command("help", "Help for the birthday command group")
 @lightbulb.implements(lightbulb.SlashSubCommand)
 async def help(ctx: lightbulb.context) -> None:
+    """help for the birthday command group
+
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
     await ctx.respond("`/birthday add` - add your birthday.\n`/birthday change` - change your birthday.\n`/birthday remove` - remove your birthday.\n`/birthday list` - list all birthdays.\n`/birthday help` - get this message.")
 
 

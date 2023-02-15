@@ -169,7 +169,7 @@ async def settings(self, ctx: lightbulb.SlashCommandContext) -> None:
 @lightbulb.option("Days", f"The number of days before the birthday to send the message [Default = 7; Current = {remind_time}]", int)
 @lightbulb.command("remind", "set the number of days before the birthday to send a reminder message")
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def remind(self, ctx: lightbulb.SlashCommandContext) -> None:
+async def remind(self, ctx: lightbulb.context) -> None:
     """sets the number of days before the birthday to send a reminder message
     
     Args:

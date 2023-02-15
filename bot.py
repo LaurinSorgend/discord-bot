@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import pickle
 import datetime
-
+from utils import get_formatted_date, check_if_valid_date, next_bd_unix
 load_dotenv()
 
 bot = lightbulb.BotApp(
@@ -12,71 +12,7 @@ bot = lightbulb.BotApp(
 )
 
 birthdays = pickle.load(open("birthdays.pickle", "rb"))
-
-# convert to unix time, if the birthday is in the past, add a year
-def next_bd_unix(month: int, day: int) -> int:
-    """gives the unix time of the next time the birthday will happen
-
-    Args:
-        month (int): month of the birthday
-        day (int): day of the birthday
-
-    Returns:
-        int: unix time of the next birthday
-    """
-    # get current year
-    current_year = datetime.datetime.now().year
-    # if the birthday is in the past, add a year
-    if datetime.datetime.now().month > month or (datetime.datetime.now().month == month and datetime.datetime.now().day > day):
-        current_year += 1
-    # convert to unix time
-    return int(datetime.datetime(current_year, month, day).timestamp())
-
-
-def get_formatted_date(year: int, month: int, day: int) -> str:
-    """ converts the date to a string
-
-    Args:
-        year (int): year
-        month (int): month
-        day (int): day
-
-    Returns:
-        str: formatted date
-    """
-    months_names = ["January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"]
-    full_day = str(day)
-    if day == 1 or day == 21 or day == 31:
-        full_day += "st"
-    elif day == 2 or day == 22:
-        full_day += "nd"
-    elif day == 3 or day == 23:
-        full_day += "rd"
-    else:
-        full_day += "th"
-    return f"{full_day} of {months_names[month - 1]} {year}"
-
-
-def check_if_valid_date(year: int, month: int, day: int) -> bool:
-    """checks if the date is valid (year is between 1900 and the current year, month is between 1 and 12, day is between 1 and 31)
-
-    Args:
-        year (int): year
-        month (int): month
-        day (int): day
-
-    Returns:
-        bool: True if the date is valid, False if not
-    """
-    if year > 1900 & year < datetime.datetime.now().year:
-        return False
-    if month < 1 or month > 12:
-        return False
-    if day < 1 or day > 31:
-        return False
-    return True
-
+remind_time = pickle.load(open("remind.pickle", "rb"))
 
 @bot.command
 @lightbulb.command("birthday", "command group to store everyones birthdays")
@@ -223,5 +159,31 @@ async def help(ctx: lightbulb.context) -> None:
     """
     await ctx.respond("`/birthday add` - add your birthday.\n`/birthday change` - change your birthday.\n`/birthday remove` - remove your birthday.\n`/birthday list` - list all birthdays.\n`/birthday help` - get this message.")
 
+@bot.command()
+@lightbulb.command("settings", "command group for settings")
+@lightbulb.implements(lightbulb.SlashCommandGroup)
+async def settings(self, ctx: lightbulb.SlashCommandContext) -> None:
+    pass
+    
+@settings.child()
+@lightbulb.option("Days", f"The number of days before the birthday to send the message [Default = 7; Current = {remind_time}]", int)
+@lightbulb.command("remind", "set the number of days before the birthday to send a reminder message")
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def remind(self, ctx: lightbulb.SlashCommandContext) -> None:
+    """sets the number of days before the birthday to send a reminder message
+    
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
+    days = ctx.options.Days
+    if days < 1:
+        await ctx.respond(f"{ctx.author.mention} The number of days must be greater than 0!")
+        return
+    if days > 365:
+        await ctx.respond(f"{ctx.author.mention} The number of days must be less than 365!")
+        return
+    remind_time = days
+    pickle.dump(remind_time, open("remind.pickle", "wb"))
+    await ctx.respond(f"{ctx.author.mention} The number of days before the birthday to send the reminder message has been set to {days}!")
 
 bot.run()

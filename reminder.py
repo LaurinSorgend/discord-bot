@@ -19,6 +19,11 @@ remind_time = pickle.load(open("remind.pickle", "rb"))
 
 @bot.listen()
 async def on_start(event: hikari.StartedEvent) -> None:
+    """checks if any birthdays are within the next remind_time days and sends a reminder if so
+
+    Args:
+        event (hikari.StartedEvent): event that is triggered when the bot starts
+    """
     #Check if any of the birthdays are within the next remind_time days
     for birthday in birthdays:
         #get the next birthday

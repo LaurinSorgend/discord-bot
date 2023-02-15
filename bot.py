@@ -162,20 +162,20 @@ async def help(ctx: lightbulb.context) -> None:
 @bot.command()
 @lightbulb.command("settings", "command group for settings")
 @lightbulb.implements(lightbulb.SlashCommandGroup)
-async def settings(self, ctx: lightbulb.SlashCommandContext) -> None:
+async def settings(self, ctx: lightbulb.context) -> None:
     pass
     
 @settings.child()
-@lightbulb.option("Days", f"The number of days before the birthday to send the message [Default = 7; Current = {remind_time}]", int)
+@lightbulb.option("days", f"The number of days before the birthday to send the message [Default = 7]", int)
 @lightbulb.command("remind", "set the number of days before the birthday to send a reminder message")
 @lightbulb.implements(lightbulb.SlashSubCommand)
-async def remind(self, ctx: lightbulb.context) -> None:
+async def remind(ctx: lightbulb.context) -> None:
     """sets the number of days before the birthday to send a reminder message
     
     Args:
         ctx (lightbulb.context): context of the command
     """
-    days = ctx.options.Days
+    days = ctx.options.days
     if days < 1:
         await ctx.respond(f"{ctx.author.mention} The number of days must be greater than 0!")
         return
@@ -186,4 +186,14 @@ async def remind(self, ctx: lightbulb.context) -> None:
     pickle.dump(remind_time, open("remind.pickle", "wb"))
     await ctx.respond(f"{ctx.author.mention} The number of days before the birthday to send the reminder message has been set to {days}!")
 
+@settings.child()
+@lightbulb.command("list", "list all settings")
+@lightbulb.implements(lightbulb.SlashSubCommand)
+async def list(ctx: lightbulb.context) -> None:
+    """lists all settings
+    
+    Args:
+        ctx (lightbulb.context): context of the command
+    """
+    await ctx.respond(f"**Settings:**\n`Remind Time:` {remind_time} days [Default = 7]")
 bot.run()
